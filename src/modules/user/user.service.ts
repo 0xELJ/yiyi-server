@@ -11,7 +11,7 @@ export class UserService {
 
         const existingUser = this.hasExistingUser(username, room);
         if (existingUser) {
-            return { error: 'User in use' };
+            return { error: 'User is in use!' };
         }
 
         const user: User = { id, username, room };
@@ -45,5 +45,4 @@ export class UserService {
     private hasExistingUser(username: string, room: string): boolean {
         return this.users.some(user => user.room === room && user.username === username);
     }
-
 }

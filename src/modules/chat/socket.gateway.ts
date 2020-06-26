@@ -9,6 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { RedisService } from 'nestjs-redis';
+import * as Redis from 'ioredis';
 import { v4 as uuid } from 'uuid';
 import { RoomRequestDto } from './dto/room-request.dto';
 import { UserService } from '../user/user.service';
@@ -20,11 +22,19 @@ import { ChatEvent } from './types/chat-event';
 
 @WebSocketGateway({ path: '/socket.io' })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
+    @WebSocketServer() private server: Server;
+    private redis: Redis.Redis;
     private adminUser: User = { id: 'adminUser-' + uuid(), username: 'ADMIN' , room: 'any' };
     private logger: Logger = new Logger('SocketGateway');
-    @WebSocketServer() private server: Server;
 
-    constructor(private userService: UserService) { }
+    constructor(private userService: UserService, private redisService: RedisService) {
+        this.initRedis();
+    }
+
+    private async initRedis() {
+        // TODO: Include redis operations to get persistence
+        this.redis = await this.redisService.getClient();
+    }
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);

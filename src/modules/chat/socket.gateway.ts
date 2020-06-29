@@ -9,8 +9,6 @@ import {
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { RedisService } from 'nestjs-redis';
-import * as Redis from 'ioredis';
 import { v4 as uuid } from 'uuid';
 import { RoomRequestDto } from './dto/room-request.dto';
 import { UserService } from '../user/user.service';
@@ -23,27 +21,19 @@ import { ChatEvent } from './types/chat-event';
 @WebSocketGateway({ path: '/socket.io' })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @WebSocketServer() private server: Server;
-    private redis: Redis.Redis;
-    private adminUser: User = { id: 'adminUser-' + uuid(), username: 'ADMIN' , room: 'any' };
     private logger: Logger = new Logger('SocketGateway');
+    private adminUser: User = { id: 'adminUser-' + uuid(), username: 'ADMIN' , room: 'any' };
 
-    constructor(private userService: UserService, private redisService: RedisService) {
-        this.initRedis();
-    }
-
-    private async initRedis() {
-        // TODO: Include redis operations to get persistence
-        this.redis = await this.redisService.getClient();
-    }
+    constructor(private userService: UserService) {}
 
     handleConnection(client: Socket) {
         this.logger.log(`Client connected: ${client.id}`);
     }
 
-    handleDisconnect(client: Socket) {
+    async handleDisconnect(client: Socket) {
         this.logger.log(`Client disconnected: ${client.id}`);
-        const user = this.userService.removeUser(client.id);
 
+        const user = await this.userService.removeUser(client.id);
         if (user) {
             this.server.to(user.room).emit(
                 ChatEvent.MESSAGE,
@@ -51,18 +41,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
             );
             this.server.to(user.room).emit(
                 ChatEvent.ROOM_DATA,
-                { room: user.room, users: this.userService.getUsersInRoom(user.room) },
+                { room: user.room, users: await this.userService.getUsersInRoom(user.room) },
             );
         }
     }
 
     @SubscribeMessage(ChatEvent.JOIN_ROOM)
-    handleJoinToRoom(
+    async handleJoinToRoom(
         @ConnectedSocket() client: Socket,
         @MessageBody() request: RoomRequestDto,
-    ): ResponseMessage<User> {
+    ): Promise<ResponseMessage<User>> {
         const { username, room } = request;
-        const { error, user } = this.userService.addUser({ id: client.id, username, room });
+        const { error, user } = await this.userService.addUser({ id: client.id, username, room });
         const response: ResponseMessage<User> = { error, data: user };
 
         if (response.error.length) {
@@ -77,18 +67,18 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
         this.server.to(user.room).emit(
             ChatEvent.ROOM_DATA,
-            { room: user.room, users: this.userService.getUsersInRoom(user.room) },
+            { room: user.room, users: await this.userService.getUsersInRoom(user.room) },
         );
 
         return response;
     }
 
     @SubscribeMessage(ChatEvent.SEND_MESSAGE)
-    handleSendMessage(
+    async handleSendMessage(
         @ConnectedSocket() client: Socket,
         @MessageBody() message: string,
-    ): ResponseMessage<string> {
-        const user = this.userService.getUser(client.id);
+    ): Promise<ResponseMessage<string>> {
+        const user = await this.userService.getUser(client.id);
         const response: ResponseMessage<string> = { error: '', data: '' };
 
         if (user) {
@@ -102,34 +92,46 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     @SubscribeMessage(ChatEvent.LEAVE_ROOM)
-    handleLeaveRoom(
+    async handleLeaveRoom(
         @ConnectedSocket() client: Socket,
         @MessageBody() body: LeaveRoomDto,
-    ): ResponseMessage<string> {
+    ): Promise<ResponseMessage<string>> {
         const { room } = body;
-        const user = this.userService.removeUser(client.id);
+        const user = await this.userService.removeUser(client.id);
         const response: ResponseMessage<string> = { error: '', data: '' };
 
         if (user) {
-            client.leave(room, error => {
-                if (error) {
-                    response.error = error;
-                }
+            try {
+                await this.leaveRoom(client, room);
                 this.server.to(room).emit(
                     ChatEvent.MESSAGE,
                     this.generateMessage(this.adminUser, `${user.username} has left!`),
                 );
                 this.server.to(room).emit(
                     ChatEvent.ROOM_DATA,
-                    { room, users: this.userService.getUsersInRoom(room) },
+                    { room, users: await this.userService.getUsersInRoom(room) },
                 );
                 response.data = 'Room leaved';
-            });
+            } catch (error) {
+                response.error = error;
+            }
         } else {
             response.error = 'User not found';
         }
 
         return response;
+    }
+
+    private leaveRoom(client: Socket, room: string): Promise<undefined> {
+        return new Promise((resolve, reject) => {
+            client.leave(room, error => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve();
+                }
+            });
+        });
     }
 
     private generateMessage({ id: userId, username }: User, message: string): Message {

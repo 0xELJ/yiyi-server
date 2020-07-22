@@ -1,75 +1,58 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+# YiYi (Backend)
 
-[travis-image]: https://api.travis-ci.org/nestjs/nest.svg?branch=master
-[travis-url]: https://travis-ci.org/nestjs/nest
-[linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
-[linux-url]: https://travis-ci.org/nestjs/nest
-  
-  <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/dm/@nestjs/core.svg" alt="NPM Downloads" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://api.travis-ci.org/nestjs/nest.svg?branch=master" alt="Travis" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://img.shields.io/travis/nestjs/nest/master.svg?label=linux" alt="Linux" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#5" alt="Coverage" /></a>
-<a href="https://gitter.im/nestjs/nestjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge"><img src="https://badges.gitter.im/nestjs/nestjs.svg" alt="Gitter" /></a>
-<a href="https://opencollective.com/nest#backer"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec"><img src="https://img.shields.io/badge/Donate-PayPal-dc3d53.svg"/></a>
-  <a href="https://twitter.com/nestframework"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+YiYi allows you to instantly connect with your friends in rooms through an easy to use messaging service.
 
-## Description
+![Showcase](showcase.png)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Introduction
+
+This repository contains the Backend development of YiYi, which is a web server built with NestJS.
+
+Follow the instructions below to obtain a copy of the project and run it on your computer for development or evaluation tests.
+
+### Requirements
+
+The project's development environment is configured to be used with *Nest CLI* and *Yarn*. To use a development environment it is necessary to have:
+
+```
+* Nest CLI v12.13.0^
+* Yarn 7.2.0^^
+```
+
+> Additionally, it is necessary to run a Redis Server. There are multiple ways to run Redis. The easiest way to start is to sign-up for the free [Redis Cloud](https://redislabs.com/redis-enterprise-cloud/) service offered by **Redis Labs**. 
 
 ## Installation
 
-```bash
-$ npm install
+First, you need to get the project repository. If you have any version of *git*, clone the repo with:
+
+```
+$ git clone https://github.com/0xELJ/yiyi-backend.git
 ```
 
-## Running the app
+Once obtained the project repo, must be installed the required dependencies to run the development environment:
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```
+$ yarn install
 ```
 
-## Test
+At the end of the installation, the environment will be ready to be run. Also, it's possible to change the host and port from the HTTP server and Redis Server in the [.env file](.env).
 
-```bash
-# unit tests
-$ npm run test
+## Execution
 
-# e2e tests
-$ npm run test:e2e
+To start the local development server with *Nest CLI*, type the following command:
 
-# test coverage
-$ npm run test:cov
+```
+$ yarn start
 ```
 
-## Support
+This command starts the app with the HTTP server listening on the URL http://localhost:5000/ by default. The server started will connect to a Redis Server using the host *localhost* and port *6379* by default. 
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Tech Stack
 
-## Stay in touch
+* [NestJS](https://nestjs.com/)
+* [Redis](https://redis.io/)
+* [NestJS Redis](https://www.npmjs.com/package/nestjs-redis)
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## Author
 
-## License
-
-  Nest is [MIT licensed](LICENSE).
+* **Enrique López Jiménez**
